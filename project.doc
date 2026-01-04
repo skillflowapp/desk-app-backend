@@ -1,0 +1,251 @@
+AI-Powered School Examination Platform
+1️⃣ HIGH-LEVEL SYSTEM OVERVIEW 🏗️
+Core Principle
+
+Backend (Laravel) is the single source of truth
+Frontend (Desktop App) is stateless UI only
+
+[ Desktop App (Electron / WPF) ]
+            |
+        HTTPS + JWT
+            |
+[ Laravel API (Auth + Logic) ]
+            |
+[ AI Engine + OCR + Jobs ]
+            |
+[ MySQL Database ]
+
+2️⃣ TECHNOLOGY STACK (FINAL) 🔒
+Backend
+
+Laravel 11 (API-only)
+
+MySQL (authoritative DB)
+
+Redis (queues & jobs)
+
+Laravel Sanctum or JWT
+
+wkhtmltopdf / DomPDF
+
+Desktop App
+
+Electron.js (Linux dev → Windows build)
+
+React (optional)
+
+SQLite (encrypted cache)
+
+AI
+
+LLM (OpenAI / Gemini / local)
+
+Tesseract OCR (PDFs)
+
+3️⃣ DATABASE DESIGN (FOUNDATION) 🗄️
+Core Tables
+users
+roles
+user_roles
+pdf_uploads
+exams
+exam_questions
+exam_codes
+exam_sessions
+student_answers
+results
+ai_logs
+audit_logs
+sync_queue
+
+Authority Rule ⚠️
+
+MySQL = FINAL
+
+SQLite = TEMPORARY
+
+4️⃣ API IMPLEMENTATION FLOW (FROM SCRATCH) ⚙️
+🔐 AUTHENTICATION FLOW
+API Endpoints
+POST   /api/auth/login
+POST   /api/auth/logout
+GET    /api/auth/me
+
+Flow Diagram
+[ Desktop App ]
+      |
+POST /login (email, password)
+      |
+[ Laravel Auth ]
+      |
+JWT Issued
+      |
+[ Desktop App Stores Token ]
+
+Rules
+
+Passwords never stored client-side
+
+Token expires
+
+Role checked on every request 🛡️
+
+👨‍🏫 TEACHER FLOW – EXAM CREATION 🧠
+Step-by-Step
+
+Upload PDF
+
+Backend extracts text (OCR)
+
+Teacher submits AI instructions
+
+AI generates questions
+
+Exam saved
+
+Exam code generated
+
+API Endpoints
+POST /api/pdfs/upload
+POST /api/exams/generate
+POST /api/exams/publish
+
+Flow Diagram
+Teacher → Upload PDF
+        → OCR + NLP
+        → AI Prompt
+        → Generated Exam
+        → Stored in DB
+        → Exam Code Created
+
+👨‍🎓 STUDENT FLOW – TAKING EXAM 📝
+Step-by-Step
+
+Student logs in
+
+Enters exam code
+
+Backend validates code
+
+Exam session created
+
+Timer starts
+
+Answers submitted
+
+API Endpoints
+POST /api/exams/enter
+POST /api/exams/submit
+
+Flow Diagram
+Student → Enter Code
+        → Backend Validates
+        → Exam Session Created
+        → Student Answers
+        → Stored Temporarily
+
+🤖 AI AUTO-GRADING FLOW 🔥
+Step-by-Step
+
+Submission received
+
+MCQs auto-checked
+
+Text answers sent to AI
+
+AI returns score + feedback
+
+Final marks calculated
+
+Results published
+
+API Endpoints
+POST /api/exams/grade
+GET  /api/results/{exam_id}
+
+Flow Diagram
+Answers → Queue Job
+        → AI Evaluation
+        → Marks + ✔ ❌
+        → Results Stored
+        → Student Notified
+
+📄 PDF EXPORT FLOW 🖨️
+Teacher / Student
+
+Exams
+
+Results
+
+Reports
+
+API Endpoint
+GET /api/exams/{id}/export
+GET /api/results/{id}/export
+
+Flow
+Laravel View → PDF Engine → File
+                         → Download / Save Locally
+
+🔄 OFFLINE MODE & SYNC FLOW 📴➡️🌐
+Offline
+
+Token cached
+
+Exams cached
+
+Answers stored in SQLite
+
+No grading allowed
+
+Sync
+Internet Detected
+      ↓
+Sync Queue Sent
+      ↓
+Backend Validates
+      ↓
+AI Grading Triggered
+      ↓
+Results Returned
+
+Rule
+
+Backend re-checks EVERYTHING 😈
+
+5️⃣ SECURITY RULES (NON-NEGOTIABLE) 🔐
+
+Role-based middleware
+
+Exam time locks
+
+Device/session binding
+
+AI keys never exposed
+
+Audit logs for:
+
+logins
+
+grading
+
+overrides
+
+exports
+
+6️⃣ DEPLOYMENT STRATEGY 🚀
+Development
+
+Linux (you)
+
+Docker (optional)
+
+Production
+
+Laravel API on:
+
+VPS / School Server
+
+Desktop app:
+
+Windows installer (.exe)
